@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<!--
+
+I CHOSE NOT TO FINISH THIS as I was stuck on the algorithm to manage push/pop of features.
+That's not what I'm learning at the moment; at the moment I'm familiarizing myself with
+the basics of CSS, JavaScript, and HTML.
+
+-->
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <style>
+
+  .container {
+    width: 230px;
+    border-style: solid;
+    border-width: 1px;
+    margin: auto;
+    padding: 10px;
+    background-color: #888;
+    border-radius: 8px;
+    }
+
+  .calc-container {
+    display: grid;
+    grid-template-columns: 50px 50px 50px 50px;
+    grid-template-rows:    60px repeat(5, 40px);
+    grid-gap: 10px;
+    }
+  
+  .calc-button {
+    background-color:#eee;
+    display: flex;  
+    justify-content: center;
+    align-items: center;
+    font-family:sans-serif;
+    font-size: 2em;
+    color: white;
+    border-radius: 8px;
+    }
+
+  .numb {
+    justify-content: center;
+    align-items: center;
+    background-color: #aaa;
+    }
+
+  .ctrl {
+    justify-content: center;
+    align-items: center;
+    background-color: #444;
+    }
+
+  .oper {
+    justify-content: center;
+    align-items: center;
+    background-color: #f80;
+    }
+
+  .disp {
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    display: flex;
+    justify-content: flex-end;
+    grid-column: 1 / 5; 
+    padding: 0 15px 0 15px;
+    }
+
+  .zero {
+    justify-content: center;
+    align-items: center;
+    background-color: #aaa;
+    grid-column: 1 / 3; 
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="container">
+<div class="calc-container">
+  <div class="calc-button disp">0</div>
+
+  <div class="calc-button ctrl" data-key="AC">AC</div>    
+  <div class="calc-button ctrl" data-key=""></div>
+  <div class="calc-button ctrl" data-key=""></div>
+  <div class="calc-button oper" data-key="/">/</div>
+
+  <div class="calc-button numb" data-key="7">7</div>
+  <div class="calc-button numb" data-key="8">8</div>
+  <div class="calc-button numb" data-key="9">9</div>
+  <div class="calc-button oper" data-key="x">x</div>
+
+  <div class="calc-button numb" data-key="4">4</div>
+  <div class="calc-button numb" data-key="5">5</div>
+  <div class="calc-button numb" data-key="6">6</div>
+  <div class="calc-button oper" data-key="-">-</div>
+
+  <div class="calc-button numb" data-key="1">1</div>
+  <div class="calc-button numb" data-key="2">2</div>
+  <div class="calc-button numb" data-key="3">3</div>
+  <div class="calc-button oper" data-key="+">+</div>
+
+  <div class="calc-button numb zero" data-key="0">0</div>
+  <div class="calc-button point" data-key=".">.</div>
+  <div class="calc-button oper" data-key="=">=</div>
+</div>
+</div>
+
+<script>
+
+const add       = (a,b) => a+b;
+const subtract  = (a,b) => a-b;
+const multiply  = (a,b) => a*b;
+const divide    = (a,b) => a/b;
+let   displayTxt= "0";
+let   stack     = [];
+
+function operate(operator, num1, num2) {
+  switch (operator) {
+    case '+': return add(num1,num2);
+    case '-': return subtract(num1,num2);
+    case '*': return multiply(num1,num2);
+    case 'x': return multiply(num1,num2);
+    case '/': return divide(num1,num2);
+    }
+  }
+
+function updateDisplay() {
+  const display = document.querySelector(".disp");
+  display.textContent = displayTxt; 
+  console.log("STACK: "+stack);
+  }
+
+const numbButs = document.querySelectorAll(".numb");
+for (let numbBut of numbButs) {
+  numbBut.addEventListener("click", () => {
+      key = numbBut.getAttribute("data-key");
+      if (displayTxt == "0") {
+        displayTxt = key;
+        }
+      else if (displayTxt.length < 12) {
+        displayTxt += key;
+      }
+      updateDisplay();
+      }
+    );
+   }
+
+const operButs = document.querySelectorAll(".oper");
+for (let operBut of operButs) {
+  operBut.addEventListener("click", () => {
+    if (stack.length > 1) {
+      displayTxt = operate(stack[1],Number(stack[0]),Number(displayTxt));
+      console.log(displayTxt);
+      stack.pop();
+      stack.pop();
+      stack.push(displayTxt);
+      }
+    stack.push(displayTxt);
+    if (operBut.getAttribute('data-key') != '=') {
+      stack.push(operBut.getAttribute('data-key'));
+      }
+    updateDisplay();
+    if (operBut.getAttribute('data-key') != '=') {
+      displayTxt = "0";
+      }
+    });
+  }
+
+const pointBut = document.querySelectorAll('[data-key="."]')[0];
+pointBut.addEventListener("click", () => {
+  if (displayTxt.search("[\.]") == -1) {
+    displayTxt += ".";
+  }
+  updateDisplay();
+  });
+
+const ACBut = document.querySelector('[data-key="AC"]');
+ACBut.addEventListener("click", () => {
+  displayTxt = "0";
+  stack      = [];
+  updateDisplay();
+  });
+
+
+</script>
+</body>
+
+</html>
