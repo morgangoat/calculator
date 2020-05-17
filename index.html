@@ -1,13 +1,5 @@
 <!DOCTYPE html>
 
-<!--
-
-I CHOSE NOT TO FINISH THIS as I was stuck on the algorithm to manage push/pop of features.
-That's not what I'm learning at the moment; at the moment I'm familiarizing myself with
-the basics of CSS, JavaScript, and HTML.
-
--->
-
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -88,8 +80,8 @@ the basics of CSS, JavaScript, and HTML.
   <div class="calc-button disp">0</div>
 
   <div class="calc-button ctrl" data-key="AC">AC</div>    
-  <div class="calc-button ctrl" data-key=""></div>
-  <div class="calc-button ctrl" data-key=""></div>
+  <div class="calc-button ctrl" data-key="+/-">+/-</div>
+  <div class="calc-button ctrl" data-key="del">del</div>
   <div class="calc-button oper" data-key="/">/</div>
 
   <div class="calc-button numb" data-key="7">7</div>
@@ -119,8 +111,8 @@ const add       = (a,b) => a+b;
 const subtract  = (a,b) => a-b;
 const multiply  = (a,b) => a*b;
 const divide    = (a,b) => a/b;
-let   displayTxt= "0";
-let   stack     = [];
+const NUM_DIGITS_DISPLAYED = 10;
+let   stack     = ["0"];
 
 function operate(operator, num1, num2) {
   switch (operator) {
@@ -132,63 +124,111 @@ function operate(operator, num1, num2) {
     }
   }
 
-function updateDisplay() {
-  const display = document.querySelector(".disp");
-  display.textContent = displayTxt; 
-  console.log("STACK: "+stack);
+function processStack () {
+  if (stack.length > 2) {
+    let num2     = Number(stack.pop());
+    let operator = stack.pop();
+    let num1     = Number(stack.pop());
+    stack.push(operate(operator, num1, num2))
+    }
   }
 
+function updateDisplay() {
+  const display = document.querySelector(".disp");
+  display.textContent = stack.reduce( (accum, cur) => {if ((!isNaN(cur)) && (cur != "")) {accum=cur;}return accum;}).toString().slice(0,NUM_DIGITS_DISPLAYED);
+  }
+
+
+// ----------------------------------------
+// Add event listeners to number, operator, decimal point, and control buttons
+
+const operButs = document.querySelectorAll(".oper");
+const pointBut = document.querySelectorAll('[data-key="."]')[0];
+const ctrlButs = document.querySelectorAll('.ctrl');
 const numbButs = document.querySelectorAll(".numb");
+
 for (let numbBut of numbButs) {
   numbBut.addEventListener("click", () => {
       key = numbBut.getAttribute("data-key");
-      if (displayTxt == "0") {
-        displayTxt = key;
+      if (stack[stack.length - 1] == ["0"]) {
+        stack[stack.length - 1] = [key];
         }
-      else if (displayTxt.length < 12) {
-        displayTxt += key;
+      else if (stack[stack.length - 1].length < NUM_DIGITS_DISPLAYED) {
+        stack[stack.length - 1] += key;
       }
       updateDisplay();
       }
     );
    }
 
-const operButs = document.querySelectorAll(".oper");
 for (let operBut of operButs) {
   operBut.addEventListener("click", () => {
-    if (stack.length > 1) {
-      displayTxt = operate(stack[1],Number(stack[0]),Number(displayTxt));
-      console.log(displayTxt);
-      stack.pop();
-      stack.pop();
-      stack.push(displayTxt);
+    if (operBut.getAttribute('data-key') == '=') {
+      while (stack.length > 1) {
+        processStack();
+        }
       }
-    stack.push(displayTxt);
-    if (operBut.getAttribute('data-key') != '=') {
-      stack.push(operBut.getAttribute('data-key'));
+    if (stack.length > 0) {
+      if ((operBut.getAttribute('data-key') == "x") || (operBut.getAttribute('data-key') == '/')) {
+        if ((stack[stack.length - 2] == 'x') || (stack[stack.length - 2] == '/')) {
+          processStack();
+          }
+        }
+      if ((operBut.getAttribute('data-key') == "+") || (operBut.getAttribute('data-key') == '-')) {
+        while (stack.length > 1) {
+          processStack();
+          }
+        }
+      if (operBut.getAttribute('data-key') != '=') {
+        stack.push(operBut.getAttribute('data-key'));
+        stack.push("");
+        }
       }
     updateDisplay();
-    if (operBut.getAttribute('data-key') != '=') {
-      displayTxt = "0";
-      }
     });
   }
 
-const pointBut = document.querySelectorAll('[data-key="."]')[0];
 pointBut.addEventListener("click", () => {
-  if (displayTxt.search("[\.]") == -1) {
-    displayTxt += ".";
+  if (stack[stack.length -1].search("[\.]") == -1) {
+    stack[stack.length-1] += ".";
   }
   updateDisplay();
   });
 
-const ACBut = document.querySelector('[data-key="AC"]');
-ACBut.addEventListener("click", () => {
-  displayTxt = "0";
-  stack      = [];
-  updateDisplay();
-  });
+for (ctrlBut of ctrlButs) {
 
+  if (ctrlBut.getAttribute('data-key') == "AC") {
+    ctrlBut.addEventListener("click", () => {
+      stack      = [0];
+      updateDisplay(); 
+      });
+    }
+
+  if (ctrlBut.getAttribute('data-key') == "+/-") {
+    ctrlBut.addEventListener("click", () => {
+      if (!isNaN(stack[stack.length-1])) {
+        stack[stack.length-1] *= -1; 
+        updateDisplay(); 
+        } 
+      });
+    }    
+
+  if (ctrlBut.getAttribute('data-key') == "del") {
+    ctrlBut.addEventListener("click", () => {
+      if (!isNaN(stack[stack.length-1])) {
+        if (stack[stack.length-1].length > 0) {
+          stack[stack.length-1] = stack[stack.length-1].slice(0,stack[stack.length-1].length-1);
+          if (stack[stack.length-1].length == 0) {
+            stack[stack.length-1] = 0;
+            }
+          updateDisplay(); 
+          }
+        }
+      });
+    }
+
+  }
+// ----------------------------------------
 
 </script>
 </body>
